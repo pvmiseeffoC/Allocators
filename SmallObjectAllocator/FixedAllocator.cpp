@@ -120,7 +120,7 @@ namespace allocators
 
         if ( !_allocChunk || _allocChunk->isFull() )
         {
-            if ( !_emptyChunk )
+            if ( _emptyChunk )
             {
                 _allocChunk = _emptyChunk;
                 _emptyChunk = nullptr;
