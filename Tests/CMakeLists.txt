@@ -12,8 +12,8 @@ add_subdirectory(benchmark)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/..)
 
-target_link_libraries(Tests ${CMAKE_CURRENT_LIST_DIR}/../../Allocators)
+
+target_link_libraries(Tests LINK_PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../Allocators)
+target_link_libraries(Tests LINK_PRIVATE benchmark::benchmark)
 
 target_include_directories(Tests PUBLIC ${CMAKE_CURRENT_LIST_DIR}/.. ${CMAKE_CURRENT_LIST_DIR}/benchmark/include)
-target_link_libraries(Tests benchmark::benchmark)
-# TODO: Add tests and install targets if needed.

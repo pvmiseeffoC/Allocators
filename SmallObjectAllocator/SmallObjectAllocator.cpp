@@ -86,7 +86,7 @@ namespace allocators
 
         for ( SizeType i = 0; i < allocatorsSize; ++i )
         {
-            foundChunk = _allocators[i].hasBlock(ptr);
+            foundChunk = _allocators[i].hasBlock( ptr );
             if ( foundChunk )
             {
                 foundAlloc = &_allocators[i];
@@ -163,7 +163,7 @@ namespace allocators
     {
         LOG( " SmallObjectAllocator %p", this );
         const auto allocCount = getOffset( maxObjectSize, objectAlignSize );
-        _allocators = std::make_unique<FixedAllocator[]>( allocCount );
+        _allocators = new FixedAllocator[allocCount];
 
         for ( SizeType i = 0; i < allocCount; ++i )
             _allocators[i].init( ( i + 1 ) * objectAlignSize, pageSize );

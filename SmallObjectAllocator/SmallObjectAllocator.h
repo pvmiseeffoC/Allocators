@@ -6,7 +6,7 @@ namespace allocators
     class SmallObjectAllocator
     {
     private:
-        std::unique_ptr<FixedAllocator[]> _allocators;
+        FixedAllocator* _allocators;
 
         const SizeType _maxObjectSize;
         const SizeType _objectAlignSize;
