@@ -21,12 +21,12 @@ namespace allocators
         }
         catch ( ... )
         {
-            LOG("makeChunk Threw Exception");
+            LOG( "makeChunk Threw Exception" );
             didAlloc = false;
         }
         if ( !didAlloc )
         {
-            LOG("makeChunk did not succeed!");
+            LOG( "makeChunk did not succeed!" );
             return false;
         }
         _allocChunk = &_chunks.back();
@@ -106,11 +106,12 @@ namespace allocators
         _blockSize = blockSize;
 
         auto blockCount = static_cast<DataType>( pageSize / blockSize );
+        if ( blockCount > _maxObjectsPerChunk )
+            blockCount = _maxObjectsPerChunk;
+        else if ( blockCount < _minObjectsPerChunk )
+            blockCount = _minObjectsPerChunk;
 
-        assert( static_cast<SizeType>( blockCount ) == pageSize / blockSize );
-
-        _numBlocks = std::max( _numBlocks, _minObjectsPerChunk );
-        _numBlocks = std::min( _numBlocks, _maxObjectsPerChunk );
+        _numBlocks = static_cast<DataType>( blockCount );
     }
 
     void* FixedAllocator::allocate()
@@ -276,14 +277,14 @@ namespace allocators
 
     bool FixedAllocator::tryToFreeUpSomeMemory()
     {
-        if(_chunks.empty())
-            assert(!_allocChunk && !_deallocChunk);
+        if ( _chunks.empty() )
+            assert( !_allocChunk && !_deallocChunk );
 
-        if(_chunks.size() == _chunks.capacity())
+        if ( _chunks.size() == _chunks.capacity() )
             return false;
 
-        _chunks.resize(_chunks.size());
-        
+        _chunks.resize( _chunks.size() );
+
         return true;
     }
 
@@ -353,7 +354,7 @@ namespace allocators
                 assert( false );
                 return true;
             }
-            else if ( _emptyChunk->_blocksAvailable != _numBlocks )
+            else if ( _emptyChunk && _emptyChunk->_blocksAvailable != _numBlocks )
             {
                 assert( false );
                 return true;

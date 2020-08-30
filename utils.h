@@ -29,7 +29,7 @@
                   << str << std::endl;                                                        \
     }
 #else
-#define LOG( ... ) void
+#define LOG( ... )
 #endif
 
 template <typename T>

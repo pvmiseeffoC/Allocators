@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\SmallObjectAllocator"
   ],
-  "SelectedNode": "\\FixedAllocator.cpp",
+  "SelectedNode": "\\benchmark",
   "PreviewInSolutionExplorer": false
 }

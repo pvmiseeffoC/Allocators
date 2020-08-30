@@ -148,11 +148,11 @@ namespace allocators
         return false;
     }
     template <class AllocationPolicy>
-    bool Chunk<AllocationPolicy>::isBlockAvailable( void* ptr, SizeType blockSize, DataType blocks )
+    bool Chunk<AllocationPolicy>::isBlockAvailable( void* ptr, SizeType blockSize, DataType blocks)
     {
         if ( isFull() )
             return false;
-
+        (void)blocks;
         DataType* location = static_cast<DataType*>( ptr );
         auto offset = location - _dataPtr;
         assert( offset % blockSize == 0 );
