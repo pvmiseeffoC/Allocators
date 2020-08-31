@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\LinearAllocator",
     "\\SmallObjectAllocator"
   ],
-  "SelectedNode": "\\SmallObjectAllocator\\SmallObjectAllocator.cpp",
+  "SelectedNode": "\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }

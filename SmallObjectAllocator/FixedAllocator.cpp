@@ -45,26 +45,13 @@ namespace allocators
         ChunkType* low = _deallocChunk;
         ChunkType* high = _deallocChunk + 1;
         const ChunkType* lowBound = &_chunks.front();
-        const ChunkType* highBound = &_chunks.back();
+        const ChunkType* highBound = &_chunks.back() + 1;
 
         if ( high == highBound )
             high = nullptr;
 
         while ( true )
         {
-            if ( high )
-            {
-                if ( high->hasBlock( p, chunkSize ) )
-                    return high;
-
-                if ( ++high == highBound )
-                {
-                    high = nullptr;
-                    if ( !low )
-                        break;
-                }
-            }
-
             if ( low )
             {
                 if ( low->hasBlock( p, chunkSize ) )
@@ -74,6 +61,19 @@ namespace allocators
                 {
                     low = nullptr;
                     if ( !high )
+                        break;
+                }
+            }
+
+            if ( high )
+            {
+                if ( high->hasBlock( p, chunkSize ) )
+                    return high;
+
+                if ( ++high == highBound )
+                {
+                    high = nullptr;
+                    if ( !low )
                         break;
                 }
             }
@@ -175,6 +175,11 @@ namespace allocators
         assert( inRange( _chunks, _allocChunk ) );
 
         ChunkType* found = hint ? hint : findChunk( p );
+        if ( !found )
+        {
+            assert( false );
+            return false;
+        }
         assert( found->hasBlock( p, _numBlocks * _blockSize ) );
 
 #if defined( DEBUG_INFO )
