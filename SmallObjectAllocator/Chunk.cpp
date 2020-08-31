@@ -5,24 +5,23 @@
 
 namespace allocators
 {
-    template <class AllocationPolicy>
-    bool Chunk<AllocationPolicy>::init( SizeType blockSize, DataType blocks )
+    template<class AllocationPolicy>
+    Chunk<AllocationPolicy>::Chunk(SizeType blockSize, DataType blocks)
     {
-        assert( blockSize > 0 );
-        assert( blocks > 0 );
+        assert(blockSize > 0);
+        assert(blocks > 0);
         const auto sizeToAllocate = blockSize * blocks;
-        assert( sizeToAllocate / blockSize == blocks );
+        assert(sizeToAllocate / blockSize == blocks);
 
-        _dataPtr = AllocationPolicy::alloc( sizeToAllocate );
-        if ( !_dataPtr )
+        _dataPtr = AllocationPolicy::alloc(sizeToAllocate);
+        if (!_dataPtr)
         {
             LOG(
-                "Allocation failed! with params blockSize %zu and numBlocks %d", blockSize, blocks );
-            return false;
+                "Allocation failed! with params blockSize %zu and numBlocks %d", blockSize, blocks);
+            throw std::bad_alloc();
         }
 
-        reset( blockSize, blocks );
-        return true;
+        reset(blockSize, blocks);
     }
     template <class AllocationPolicy>
     void* Chunk<AllocationPolicy>::allocate( SizeType blockSize )

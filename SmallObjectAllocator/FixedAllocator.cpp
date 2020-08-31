@@ -4,7 +4,6 @@ namespace allocators
 {
     bool FixedAllocator::makeChunk()
     {
-        bool didAlloc = false;
         try
         {
             auto size = _chunks.size();
@@ -14,20 +13,11 @@ namespace allocators
                 size = std::max( size, static_cast<decltype( size )>( 8 ) );
                 _chunks.reserve( size * 2 );
             }
-            ChunkType newChunk;
-            didAlloc = newChunk.init( _blockSize, _numBlocks );
-            if ( didAlloc )
-                _chunks.emplace_back( newChunk );
+            _chunks.emplace_back( _blockSize, _numBlocks );
         }
         catch ( ... )
         {
             LOG( "makeChunk Threw Exception" );
-            didAlloc = false;
-        }
-        if ( !didAlloc )
-        {
-            LOG( "makeChunk did not succeed!" );
-            return false;
         }
         _allocChunk = &_chunks.back();
         _deallocChunk = &_chunks.front();

@@ -11,16 +11,18 @@ namespace allocators
         class MutexPolicy = DEFAULT_MUTEX>
     class SmallValueObject
         : public SmallObjectBase<
-              ThredingPolicy,
+              ThreadingPolicy,
               chunkSize,
               maxSmallObjectSize,
               objectAlignSize,
               MutexPolicy>
     {
-    protected:
+    public:
         inline SmallValueObject() = default;
         inline SmallValueObject(SmallValueObject const&) = default;
         inline SmallValueObject& operator=(SmallValueObject const&) = default;
-        inline ~SmallValueObject() = default;
+        inline SmallValueObject(SmallValueObject &&) = default;
+        inline SmallValueObject& operator=(SmallValueObject &&) = default;
+        virtual ~SmallValueObject() = default;
     };
 }  // namespace allocators

@@ -46,17 +46,31 @@ namespace allocators
             SmallObjAllocSingleton::instance().deallocate( ptr, size );
         }
 
-        static void operator delete( void* ptr, const std::nothrow_t& ) noexcept
-        {
-            MyLock lock;
-            (void)lock;
-            SmallObjAllocSingleton::instance().deallocate( ptr );
-        }
-
         /// Placement delete
         inline static void operator delete( void* p, void* place )
         {
             ::operator delete( p, place );
+        }
+
+        static void* operator new[]( std::size_t size ) noexcept
+        {
+            MyLock lock;
+            (void)lock;  // get rid of warning
+            return SmallObjAllocSingleton::instance().allocate( size );
+        }
+
+        static void* operator new[]( std::size_t size, const std::nothrow_t& ) noexcept
+        {
+            MyLock lock;
+            (void)lock;  // get rid of warning
+            return SmallObjAllocSingleton::instance().allocate( size );
+        }
+        /// Array-object delete.
+        static void operator delete[]( void* p, std::size_t size ) noexcept
+        {
+            MyLock lock;
+            (void)lock;  // get rid of warning
+            SmallObjAllocSingleton::instance().deallocate( p, size );
         }
 
 

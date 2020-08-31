@@ -21,10 +21,12 @@ namespace allocators
     public:
         virtual ~SmallObject() = default;
 
-    protected:
         inline SmallObject() = default;
 
         SmallObject( SmallObject const& ) = delete;           // non-copyable
         SmallObject& operator=( SmallObject const& ) = delete;// non-copyable
+
+        SmallObject( SmallObject && ) = default;           //movable
+        SmallObject& operator=( SmallObject && ) = default;//movable
     };
 }  // namespace allocators

@@ -16,10 +16,16 @@ namespace allocators
     {
     public:
         using AllocatorPolicy = AllocationPolicy;
+    public:
+        Chunk() = default;
+        Chunk(SizeType blockSize, DataType blocks);
+        Chunk(Chunk const&) = delete;
+        Chunk& operator=(Chunk const&) = delete;
+        Chunk(Chunk&&) = default;
+        Chunk& operator=(Chunk&&) = default;
+        ~Chunk() = default;
     private:
         friend class FixedAllocator;
-
-        bool init( SizeType blockSize, DataType blocks );
 
         void* allocate( SizeType blockSize );
 
