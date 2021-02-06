@@ -27,18 +27,18 @@ private:
 
     LockType _lock;
 private:
-    bool splitToLevel( std::size_t level );
-    void freeNode(std::size_t nodeIdx, std::size_t level);
-    void mergeFreeNodes(std::size_t parent, std::size_t level);
+    bool splitToLevel( std::size_t level ) noexcept;
+    void freeNode(std::size_t nodeIdx, std::size_t level) noexcept;
+    void mergeFreeNodes(std::size_t parent, std::size_t level) noexcept;
 
-    std::size_t fixSize(std::size_t allocSize) const;
+    std::size_t fixSize(std::size_t allocSize) const noexcept;
 public:
     BuddyAllocator();
 
-    void* allocate( std::size_t size );
-    void deallocate( void* ptr, std::size_t size );
+    void* allocate( std::size_t size ) noexcept;
+    void deallocate( void* ptr, std::size_t size ) noexcept;
 
-    std::vector<std::size_t> freeNodesPerLevel() const;
+    std::vector<std::size_t> freeNodesPerLevel() const noexcept;
 
     ~BuddyAllocator();
 };

@@ -31,7 +31,7 @@ namespace buddylib
 }  // namespace buddylib
 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
-inline bool BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::splitToLevel( std::size_t level )
+inline bool BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::splitToLevel( std::size_t level ) noexcept
 {
     auto beginSplitLvl = level;
     while ( beginSplitLvl > 0 && _freeList.at( --beginSplitLvl ).empty() )
@@ -58,7 +58,7 @@ inline bool BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::splitToLevel( 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
 inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNode(
     std::size_t nodeIdx,
-    std::size_t level )
+    std::size_t level )noexcept
 {
     ScopedLock guard{ _lock };
     auto insertPos =
@@ -71,7 +71,7 @@ inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNode(
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
 inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::mergeFreeNodes(
     std::size_t parent,
-    std::size_t level )
+    std::size_t level )noexcept
 {
     for ( ;; )
     {
@@ -100,7 +100,7 @@ inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::mergeFreeNodes
 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
 inline std::size_t BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::fixSize(
-    std::size_t allocSize ) const
+    std::size_t allocSize ) const noexcept
 {
     if ( !buddylib::isPow2( allocSize ) )
         allocSize = buddylib::nextPow2( allocSize );
@@ -116,7 +116,7 @@ inline BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::BuddyAllocator()
 }
 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
-inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate( std::size_t size )
+inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate( std::size_t size ) noexcept
 {
     size = fixSize( size );
 
@@ -136,7 +136,7 @@ inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate( std
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
 inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::deallocate(
     void* ptr,
-    std::size_t size )
+    std::size_t size ) noexcept
 {
     size = fixSize( size );
     auto level = MAX_SIZE - static_cast<std::size_t>( std::log2( size ) + 0.1 );
@@ -149,7 +149,7 @@ inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::deallocate(
 }
 
 template<std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
-inline std::vector<std::size_t> BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNodesPerLevel() const
+inline std::vector<std::size_t> BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNodesPerLevel() const noexcept
 {
     std::vector<std::size_t> result;
     for(auto const& freeNodes : _freeList)
