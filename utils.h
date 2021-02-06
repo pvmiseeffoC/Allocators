@@ -8,7 +8,7 @@
 //#define FORCE_LOGS 1
 
 #if defined( DEBUG ) || defined( _DEBUG ) || defined( FORCE_LOGS )
-#define DEBUG_INFO 1
+//#define DEBUG_INFO 1
 #endif
 
 #if defined( _MSC_VER ) // MSVC does not like sprintf

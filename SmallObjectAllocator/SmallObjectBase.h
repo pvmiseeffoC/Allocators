@@ -26,10 +26,16 @@ namespace allocators
         using MyLock = typename SmallObjAllocSingleton::MyLock;
 
     public:
+        static MyLock& getLock()
+        {
+            static MyLock lock;
+            return lock;
+        }
+
         static void* operator new( SizeType size ) noexcept
         {
-            MyLock lock;
-            (void)lock;
+            auto& lock = getLock();
+            std::lock_guard<decltype(lock)> guard{ lock };
             return SmallObjAllocSingleton::instance().allocate( size );
         }
 
@@ -41,35 +47,37 @@ namespace allocators
 
         static void operator delete( void* ptr, SizeType size ) noexcept
         {
-            MyLock lock;
-            (void)lock;
+            auto& lock = getLock();
+            std::lock_guard<decltype(lock)> guard{ lock };
             SmallObjAllocSingleton::instance().deallocate( ptr, size );
         }
 
         /// Placement delete
         inline static void operator delete( void* p, void* place )
         {
+            auto& lock = getLock();
+            std::lock_guard<decltype(lock)> guard{ lock };
             ::operator delete( p, place );
         }
 
         static void* operator new[]( std::size_t size ) noexcept
         {
-            MyLock lock;
-            (void)lock;  // get rid of warning
+            auto& lock = getLock();
+            std::lock_guard<decltype(lock)> guard{ lock };
             return SmallObjAllocSingleton::instance().allocate( size );
         }
 
         static void* operator new[]( std::size_t size, const std::nothrow_t& ) noexcept
         {
-            MyLock lock;
-            (void)lock;  // get rid of warning
+            auto& lock = getLock();
+            std::lock_guard<decltype(lock)> guard{ lock };
             return SmallObjAllocSingleton::instance().allocate( size );
         }
         /// Array-object delete.
         static void operator delete[]( void* p, std::size_t size ) noexcept
         {
-            MyLock lock;
-            (void)lock;  // get rid of warning
+            auto& lock = getLock();
+            std::lock_guard<decltype(lock)> guard{ lock };
             SmallObjAllocSingleton::instance().deallocate( p, size );
         }
 

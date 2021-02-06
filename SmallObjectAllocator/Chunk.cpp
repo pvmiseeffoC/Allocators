@@ -57,6 +57,7 @@ namespace allocators
 
         *releasePtr = _firstAvailableBlock;
         _firstAvailableBlock = idx;
+        ++_blocksAvailable;
 
         assert( _firstAvailableBlock == ( releasePtr - _dataPtr ) / blockSize );
     }

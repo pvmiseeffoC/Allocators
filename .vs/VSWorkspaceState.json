@@ -1,8 +1,6 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\LinearAllocator",
-    "\\SmallObjectAllocator"
+    ""
   ],
   "SelectedNode": "\\main.cpp",
   "PreviewInSolutionExplorer": false

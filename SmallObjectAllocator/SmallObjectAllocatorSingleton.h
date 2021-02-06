@@ -45,15 +45,15 @@ namespace allocators
     public:
         static void removeExtraMemory()
         {
-            MyLock lock;
-            (void)lock;
+            static MyLock lock;
+            std::lock_guard<decltype(lock)> guard{ lock };
             instance().tryToFreeUpSomeMemory();
         }
 
         static bool isCorrupt()
         {
-            MyLock lock;
-            (void)lock;
+            static MyLock lock;
+            std::lock_guard<decltype(lock)> guard{lock};
             return instance().corrupt();
         }
     };

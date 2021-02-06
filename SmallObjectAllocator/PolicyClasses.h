@@ -14,6 +14,9 @@ namespace allocators
         struct EmptyLock
         {
             EmptyLock() = default;
+
+            void lock() const {}
+            void unlock() const {}
         };
         using Lock = EmptyLock;
         using MyOwner = Owner;
@@ -25,18 +28,19 @@ namespace allocators
     public:
         struct Lock
         {
-        private:
-            static MutexPolicy _mutex;
+            MutexPolicy _mx;
 
         public:
-            Lock() { _mutex.lock(); }
-            ~Lock() { _mutex.unlock(); }
+            void lock() { _mx.lock(); }
+            void unlock() { _mx.unlock(); }
         };
     };
 
     template <class T, class U>
     using DEFAULT_THREADING_MODEL = ::allocators::SingleThreaded<T, U>;
 
+    template <class T, class U>
+    using SINGLE_THREADING_MODEL = ::allocators::SingleThreaded<T, U>;
     template <class T, class U>
     using MULTI_THREADING_MODEL = ::allocators::MultiThreaded<T, U>;
 
