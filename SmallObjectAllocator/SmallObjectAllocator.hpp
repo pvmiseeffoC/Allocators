@@ -2,7 +2,8 @@
 
 namespace allocators
 {
-    void* SmallObjectAllocator::allocate( SizeType size )
+    template < template<class> class THREADING_POLICY, class MUTEX_POLICY>
+    void* SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::allocate( SizeType size )
     {
         if ( size > getMaxObjectSize() )
             return DefaultAllocator::alloc( size );
@@ -14,6 +15,7 @@ namespace allocators
         const auto allocatorsSize = getOffset( getMaxObjectSize(), getAlignmentSize() );
 
         assert( idx < allocatorsSize );
+        std::lock_guard<Lock> guard(_locks[idx]);
         auto& allocator = _allocators[idx];
         LOG( " Allocating from %p ", &allocator );
 
@@ -36,7 +38,8 @@ namespace allocators
         return allocated;
     }
 
-    void SmallObjectAllocator::deallocate( void* ptr, SizeType size ) noexcept
+    template <template<class> class THREADING_POLICY, class MUTEX_POLICY>
+    void SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::deallocate( void* ptr, SizeType size ) noexcept
     {
         if ( !ptr )
         {
@@ -57,6 +60,7 @@ namespace allocators
         const auto allocatorsSize = getOffset( getMaxObjectSize(), getAlignmentSize() );
         assert( idx < allocatorsSize );
 
+        std::lock_guard<Lock> guard(_locks[idx]);
         auto& allocator = _allocators[idx];
         LOG( " Deallocating from : %p ", &allocator );
 
@@ -68,7 +72,8 @@ namespace allocators
         LOG( " Did Deallocate: %s ", booleanStr( didDeallocate ) );
     }
 
-    void SmallObjectAllocator::deallocate( void* ptr )
+    template <template<class> class THREADING_POLICY, class MUTEX_POLICY>
+    void SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::deallocate( void* ptr )
     {
         if ( !ptr )
         {
@@ -108,7 +113,8 @@ namespace allocators
         LOG( " DidDeallocate : %s ", booleanStr( didDeallocate ) );
     }
 
-    bool SmallObjectAllocator::tryToFreeUpSomeMemory()
+    template <template<class> class THREADING_POLICY, class MUTEX_POLICY>
+    bool SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::tryToFreeUpSomeMemory()
     {
         bool didFreeMemory = false;
 
@@ -127,7 +133,8 @@ namespace allocators
         return didFreeMemory;
     }
 
-    bool SmallObjectAllocator::corrupt() const
+    template <template<class> class THREADING_POLICY, class MUTEX_POLICY>
+    bool SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::corrupt() const
     {
         if ( !_allocators || getAlignmentSize() == 0 || getMaxObjectSize() == 0 )
         {
@@ -147,13 +154,15 @@ namespace allocators
         return false;
     }
 
-    SizeType SmallObjectAllocator::getOffset( SizeType numBytes, SizeType alignment )
+    template <template<class> class THREADING_POLICY, class MUTEX_POLICY>
+    SizeType SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::getOffset( SizeType numBytes, SizeType alignment )
     {
         const auto extra = alignment - 1;
         return ( numBytes + extra ) / alignment;
     }
 
-    SmallObjectAllocator::SmallObjectAllocator(
+    template <template<class> class THREADING_POLICY, class MUTEX_POLICY>
+    SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::SmallObjectAllocator(
         SizeType pageSize,
         SizeType maxObjectSize,
         SizeType objectAlignSize )
@@ -164,8 +173,15 @@ namespace allocators
         LOG( " SmallObjectAllocator %p", this );
         const auto allocCount = getOffset( maxObjectSize, objectAlignSize );
         _allocators = new FixedAllocator[allocCount];
+        _locks = new Lock[allocCount];
 
         for ( SizeType i = 0; i < allocCount; ++i )
             _allocators[i].init( ( i + 1 ) * objectAlignSize, pageSize );
+    }
+    template<template<class>class THREADING_POLICY, class MUTEX_POLICY>
+    inline SmallObjectAllocator<THREADING_POLICY, MUTEX_POLICY>::~SmallObjectAllocator()
+    {
+        delete[] _allocators;
+        delete[] _locks;
     }
 }  // namespace allocators

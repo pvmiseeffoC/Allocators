@@ -4,7 +4,7 @@
 namespace allocators
 {
     template <
-        template <class, class>
+        template <class>
         class ThreadingPolicy,
         SizeType chunkSize = DEFAULT_CHUNK_SIZE,
         SizeType maxSmallObjectSize = MAX_SMALL_OBJECT_SIZE,

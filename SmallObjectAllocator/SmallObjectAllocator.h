@@ -3,10 +3,14 @@
 
 namespace allocators
 {
+    template <template<class> class THREADING_POLICY, class MUTEX_POLICY>
     class SmallObjectAllocator
     {
     private:
         FixedAllocator* _allocators;
+
+        using Lock = typename THREADING_POLICY<MUTEX_POLICY>::Lock;
+        Lock* _locks;
 
         const SizeType _maxObjectSize;
         const SizeType _objectAlignSize;
@@ -44,6 +48,8 @@ namespace allocators
     protected:
         SmallObjectAllocator( SizeType pageSize, SizeType maxObjectSize, SizeType objectAlignSize );
 
-        ~SmallObjectAllocator() = default;
+        ~SmallObjectAllocator();
     };
 }  // namespace allocators
+
+#include "SmallObjectAllocator.hpp"

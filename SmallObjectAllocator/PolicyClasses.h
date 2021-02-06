@@ -7,7 +7,7 @@ namespace allocators
     using DEFAULT_RECURSIVE_MUTEX = std::recursive_mutex;
 
     // Threading Policies
-    template <class Owner, class MutexPolicy = DEFAULT_MUTEX>
+    template <class MutexPolicy = DEFAULT_MUTEX>
     class SingleThreaded
     {
     public:
@@ -19,10 +19,9 @@ namespace allocators
             void unlock() const {}
         };
         using Lock = EmptyLock;
-        using MyOwner = Owner;
     };
 
-    template <class Owner, class MutexPolicy = DEFAULT_MUTEX>
+    template <class MutexPolicy = DEFAULT_MUTEX>
     class MultiThreaded
     {
     public:
@@ -31,18 +30,19 @@ namespace allocators
             MutexPolicy _mx;
 
         public:
+
             void lock() { _mx.lock(); }
             void unlock() { _mx.unlock(); }
         };
     };
 
-    template <class T, class U>
-    using DEFAULT_THREADING_MODEL = ::allocators::SingleThreaded<T, U>;
+    template <class M>
+    using DEFAULT_THREADING_MODEL = ::allocators::SingleThreaded<M>;
 
-    template <class T, class U>
-    using SINGLE_THREADING_MODEL = ::allocators::SingleThreaded<T, U>;
-    template <class T, class U>
-    using MULTI_THREADING_MODEL = ::allocators::MultiThreaded<T, U>;
+    template <class M>
+    using SINGLE_THREADING_MODEL = ::allocators::SingleThreaded<M>;
+    template <class M>
+    using MULTI_THREADING_MODEL = ::allocators::MultiThreaded<M>;
 
 #define DEFAULT_CHUNK_SIZE 4096
 #define MAX_SMALL_OBJECT_SIZE 256

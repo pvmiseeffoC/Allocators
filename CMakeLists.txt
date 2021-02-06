@@ -26,7 +26,7 @@ add_executable (Allocators
 				"SmallObjectAllocator/FixedAllocator.h" 
 				"SmallObjectAllocator/FixedAllocator.cpp" 
 				"SmallObjectAllocator/SmallObjectAllocator.h"
-				"SmallObjectAllocator/SmallObjectAllocator.cpp"
+				"SmallObjectAllocator/SmallObjectAllocator.hpp"
 				"SmallObjectAllocator/SmallObjectAllocatorSingleton.h"
 				"SmallObjectAllocator/PolicyClasses.h"
 				"SmallObjectAllocator/SmallObjectBase.h"

@@ -5,12 +5,12 @@
 namespace allocators
 {
     template <
-        template <class, class> class ThreadingPolicy = DEFAULT_THREADING_MODEL,
+        template <class> class ThreadingPolicy = DEFAULT_THREADING_MODEL,
         SizeType chunkSize = DEFAULT_CHUNK_SIZE,
         SizeType maxSmallObjectSize = MAX_SMALL_OBJECT_SIZE,
         SizeType objectAlignSize = DEFAULT_ALIGN_SIZE,
         class MutexPolicy = DEFAULT_MUTEX>
-    class SmallObjectAllocatorSingleton : public SmallObjectAllocator
+    class SmallObjectAllocatorSingleton : public SmallObjectAllocator<ThreadingPolicy, MutexPolicy>
     {
     public:
         using MyAllocator = SmallObjectAllocatorSingleton<
@@ -20,7 +20,7 @@ namespace allocators
             objectAlignSize,
             MutexPolicy>;
 
-        using MyThreadingPolicy = ThreadingPolicy<MyAllocator, MutexPolicy>;
+        using MyThreadingPolicy = ThreadingPolicy<MyAllocator>;
 
         using MyLock = typename MyThreadingPolicy::Lock;
 
@@ -45,15 +45,11 @@ namespace allocators
     public:
         static void removeExtraMemory()
         {
-            static MyLock lock;
-            std::lock_guard<decltype(lock)> guard{ lock };
             instance().tryToFreeUpSomeMemory();
         }
 
         static bool isCorrupt()
         {
-            static MyLock lock;
-            std::lock_guard<decltype(lock)> guard{lock};
             return instance().corrupt();
         }
     };
