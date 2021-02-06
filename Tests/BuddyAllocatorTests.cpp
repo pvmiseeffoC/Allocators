@@ -58,16 +58,16 @@ void linearAllocReverseOrderDealloc(
     }
 }
 
-TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
+TEST( BuddyAllocatorTests, TestPerformanceFor270byteObjects )
 {
-    BuddyAllocator<20, 10, SingleThreaded> buddy;
+    BuddyAllocator<24, 8, SingleThreaded> buddy;
     auto buddyTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
                 buddy,
-                /*allocations*/ 512,
-                /*allocSize*/ 528 );
+                /*allocations*/ 1 << 12,
+                /*allocSize*/ 270 );
         } );
 
     NewAllocator newAlloc;
@@ -76,8 +76,33 @@ TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
         [&]() {
             linearAllocDealloc(
                 newAlloc,
-                /*allocations*/ 512,
-                /*allocSize*/ 528 );
+                /*allocations*/ 1 << 12,
+                /*allocSize*/ 270 );
+        });
+
+    EXPECT_LE( buddyTime, newTime );
+}
+
+TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
+{
+    BuddyAllocator<28, 10, SingleThreaded> buddy;
+    auto buddyTime = bench(
+        /*iterations*/ 1000,
+        [&]() {
+            linearAllocDealloc(
+                buddy,
+                /*allocations*/ 1 << 16,
+                /*allocSize*/ 1024 );
+        } );
+
+    NewAllocator newAlloc;
+    auto newTime = bench(
+        /*iterations*/ 1000,
+        [&]() {
+            linearAllocDealloc(
+                newAlloc,
+                /*allocations*/ 1 << 16,
+                /*allocSize*/ 1024 );
         });
 
     EXPECT_LE( buddyTime, newTime );
