@@ -6,11 +6,11 @@
 
 using namespace buddy;
 
-class NewAllocator
+class MallocAllocator
 {
 public:
-    void* allocate( size_t size ) { return ::operator new( size ); }
-    void deallocate( void* ptr, size_t size ) { return ::operator delete( ptr, size ); }
+    void* allocate( size_t size ) { return malloc( size ); }
+    void deallocate( void* ptr, size_t size ) { free( ptr ); }
 };
 
 template <typename T>
@@ -60,7 +60,7 @@ void linearAllocReverseOrderDealloc(
 
 TEST( BuddyAllocatorTests, TestPerformanceFor270byteObjects )
 {
-    BuddyAllocator<24, 8, SingleThreaded> buddy;
+    BuddyAllocator<20, 8, SingleThreaded> buddy;
     auto buddyTime = bench(
         /*iterations*/ 1000,
         [&]() {
@@ -70,12 +70,12 @@ TEST( BuddyAllocatorTests, TestPerformanceFor270byteObjects )
                 /*allocSize*/ 270 );
         } );
 
-    NewAllocator newAlloc;
+    MallocAllocator mallocAlloc;
     auto newTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
-                newAlloc,
+                mallocAlloc,
                 /*allocations*/ 1 << 12,
                 /*allocSize*/ 270 );
         });
@@ -85,24 +85,49 @@ TEST( BuddyAllocatorTests, TestPerformanceFor270byteObjects )
 
 TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
 {
-    BuddyAllocator<28, 10, SingleThreaded> buddy;
+    BuddyAllocator<24, 10, SingleThreaded> buddy;
     auto buddyTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
                 buddy,
-                /*allocations*/ 1 << 16,
+                /*allocations*/ 1 << 14,
                 /*allocSize*/ 1024 );
         } );
 
-    NewAllocator newAlloc;
+    MallocAllocator mallocAlloc;
     auto newTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
-                newAlloc,
-                /*allocations*/ 1 << 16,
+                mallocAlloc,
+                /*allocations*/ 1 << 14,
                 /*allocSize*/ 1024 );
+        });
+
+    EXPECT_LE( buddyTime, newTime );
+}
+
+TEST( BuddyAllocatorTests, TestPerformanceFor128byteObjects )
+{
+    BuddyAllocator<30, 10, SingleThreaded> buddy;
+    auto buddyTime = bench(
+        /*iterations*/ 1000,
+        [&]() {
+            linearAllocDealloc(
+                buddy,
+                /*allocations*/ 1 << 20,
+                /*allocSize*/ 128 );
+        } );
+
+    MallocAllocator mallocAlloc;
+    auto newTime = bench(
+        /*iterations*/ 1000,
+        [&]() {
+            linearAllocDealloc(
+                mallocAlloc,
+                /*allocations*/ 1 << 20,
+                /*allocSize*/ 128 );
         });
 
     EXPECT_LE( buddyTime, newTime );

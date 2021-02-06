@@ -60,7 +60,7 @@ inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNode(
     std::size_t nodeIdx,
     std::size_t level )
 {
-    Lock guard{ _lock };
+    ScopedLock guard{ _lock };
     auto insertPos =
         std::lower_bound( std::begin( _freeList[level] ), std::end( _freeList[level] ), nodeIdx );
     _freeList[level].insert( insertPos, Node( nodeIdx ) );
@@ -121,7 +121,7 @@ inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate( std
     size = fixSize( size );
 
     auto level = MAX_SIZE - static_cast<std::size_t>( std::log2( size ) + 0.1 );
-    Lock guard{ _lock };
+    ScopedLock guard{ _lock };
     if ( _freeList.at( level ).empty() && !splitToLevel( level ) )
         return nullptr;
 

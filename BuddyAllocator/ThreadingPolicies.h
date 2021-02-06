@@ -17,13 +17,12 @@ namespace buddy
             LockGuard(T t){}
         };
         using LockType = Empty;
-        using Lock = LockGuard<LockType>;
+        using ScopedLock = LockGuard<LockType>;
     };
 
     struct MultiThreaded
     {
         using LockType = std::mutex;
-        template<class T>
-        using Lock = std::lock_guard<LockType>;
+        using ScopedLock = std::lock_guard<LockType>;
     };
 }

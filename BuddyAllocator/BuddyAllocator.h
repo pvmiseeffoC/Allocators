@@ -18,7 +18,7 @@ private:
     };
 
     using LockType = typename THREADING_POLICY::LockType;
-    using Lock = typename THREADING_POLICY::Lock;
+    using ScopedLock = typename THREADING_POLICY::ScopedLock;
 
 private:
     std::vector<std::list<Node>> _freeList;
