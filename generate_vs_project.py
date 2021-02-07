@@ -12,7 +12,7 @@ if len(sys.argv) == 2:
 if not os.path.exists("out"):
     os.mkdir("out")
 
-cmakeCmd = ["cmake", '-G', vs_version, ".."]
+cmakeCmd = ["cmake", '-G', vs_version, "..", "-DCMAKE_GENERATOR_PLATFORM=x64"]
 try:
     retCode = subprocess.check_call(cmakeCmd, stderr=subprocess.STDOUT, cwd="out", shell=True)
 except subprocess.CalledProcessError as os:
