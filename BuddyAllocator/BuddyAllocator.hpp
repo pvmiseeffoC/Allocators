@@ -7,7 +7,7 @@
 
 namespace buddylib
 {
-    inline std::size_t pow2( std::size_t t ) { return 0x1 << t; }
+    inline std::size_t pow2( std::size_t t ) { return 0b1 << t; }
 
     inline std::size_t nextPow2( std::size_t t )  // from bittwiddling hacks
     {
@@ -28,10 +28,13 @@ namespace buddylib
     inline std::size_t rightChildIdx( std::size_t idx ) { return ( idx << 1 ) + 2; }
 
     inline std::size_t parentIdx( std::size_t childIdx ) { return ( childIdx - 1 ) >> 1; }
+
+    inline std::size_t calcBitsetPos(std::size_t nodeIdx) { return (nodeIdx + 1) >> 1; }
 }  // namespace buddylib
 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
-inline bool BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::splitToLevel( std::size_t level ) noexcept
+inline bool BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::splitToLevel(
+    std::size_t level ) noexcept
 {
     auto beginSplitLvl = level;
     while ( beginSplitLvl > 0 && _freeList.at( --beginSplitLvl ).empty() )
@@ -58,43 +61,38 @@ inline bool BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::splitToLevel( 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
 inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNode(
     std::size_t nodeIdx,
-    std::size_t level )noexcept
+    std::size_t level ) noexcept
 {
-    ScopedLock guard{ _lock };
-    auto insertPos =
-        std::lower_bound( std::begin( _freeList[level] ), std::end( _freeList[level] ), nodeIdx );
-    _freeList[level].insert( insertPos, nodeIdx );
+    ScopedLock guard { _lock };
 
-    mergeFreeNodes( buddylib::parentIdx( nodeIdx ), level );
+    freeNode( nodeIdx, level, guard );
 }
 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
-inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::mergeFreeNodes(
-    std::size_t parent,
-    std::size_t level )noexcept
+inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNode(
+    std::size_t nodeIdx,
+    std::size_t level,
+    ScopedLock& lock ) noexcept
 {
-    for ( ;; )
+    auto it =
+        std::lower_bound( std::begin( _freeList[level] ), std::end( _freeList[level] ), nodeIdx );
+    _freeList[level].insert( it, nodeIdx );
+
+    if (level == 0)
+        return;
+    auto freeNodeIdx = buddylib::calcBitsetPos(nodeIdx);
+    _freeNodes.flip( freeNodeIdx );
+
+    auto parent = buddylib::parentIdx( nodeIdx );
+
+    if ( !_freeNodes.test(freeNodeIdx) )
     {
-        auto left = buddylib::leftChildIdx( parent );
-        auto right = buddylib::rightChildIdx( parent );
-        auto pos =
-            std::lower_bound( std::begin( _freeList[level] ), std::end( _freeList[level] ), left );
-
-        if ( *pos == left && ++pos != std::end( _freeList[level] ) && *pos == right )
-        {
-            _freeList[level].erase(std::prev(pos), std::next(pos));
-            auto insertPos =
-                std::lower_bound(std::begin(_freeList[level - 1]), std::end(_freeList[level - 1]), parent);
-            _freeList[level - 1].insert(insertPos, parent);
-        }
+        if ( *std::prev( it ) == buddylib::leftChildIdx( parent ) )
+            _freeList[level].erase( std::prev( it ), std::next( it ) );
         else
-            return;
+            _freeList[level].erase( std::prev( std::prev( it ) ), it );
 
-        if(level - 1 == 0)
-            return;
-
-        parent = buddylib::parentIdx(parent);
-        --level;
+        freeNode( parent, --level, lock );
     }
 }
 
@@ -113,15 +111,18 @@ inline BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::BuddyAllocator()
 {
     _freeList.resize( MAX_SIZE - MIN_SIZE + 1 );
     _freeList[0].emplace_back( 0 );
+    _freeNodes.reset();
+    _freeNodes[0] = true;
 }
 
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
-inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate( std::size_t size ) noexcept
+inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate(
+    std::size_t size ) noexcept
 {
     size = fixSize( size );
 
     auto level = MAX_SIZE - static_cast<std::size_t>( std::log2( size ) + 0.1 );
-    ScopedLock guard{ _lock };
+    ScopedLock guard { _lock };
     if ( _freeList.at( level ).empty() && !splitToLevel( level ) )
         return nullptr;
 
@@ -130,6 +131,7 @@ inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate( std
     auto levelSize = buddylib::pow2( MAX_SIZE ) / levelBeginIdx;
     auto offset = levelSize * ( nodeIdx - ( levelBeginIdx - 1 ) );
     _freeList.at( level ).pop_front();
+    _freeNodes.flip(buddylib::calcBitsetPos(nodeIdx));
     return _memoryPtr.get() + offset;
 }
 
@@ -142,18 +144,19 @@ inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::deallocate(
     auto level = MAX_SIZE - static_cast<std::size_t>( std::log2( size ) + 0.1 );
     auto levelBeginIdx = buddylib::pow2( level );
     auto levelSize = buddylib::pow2( MAX_SIZE ) / levelBeginIdx;
-    auto offset = ( static_cast<uint8_t*>(ptr) - _memoryPtr.get() );
+    auto offset = ( static_cast<uint8_t*>( ptr ) - _memoryPtr.get() );
     auto nodeIdx = offset / levelSize + levelBeginIdx - 1;
 
     freeNode( nodeIdx, level );
 }
 
-template<std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
-inline std::vector<std::size_t> BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNodesPerLevel() const noexcept
+template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
+inline std::vector<std::size_t>
+BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNodesPerLevel() const noexcept
 {
     std::vector<std::size_t> result;
-    for(auto const& freeNodes : _freeList)
-        result.emplace_back(freeNodes.size());
+    for ( auto const& freeNodes : _freeList )
+        result.emplace_back( freeNodes.size() );
     return result;
 }
 

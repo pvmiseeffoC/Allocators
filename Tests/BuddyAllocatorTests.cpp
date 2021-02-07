@@ -66,21 +66,21 @@ TEST( BuddyAllocatorTests, TestPerformanceFor270byteObjects )
         [&]() {
             linearAllocDealloc(
                 buddy,
-                /*allocations*/ 1 << 12,
+                /*allocations*/ 1 << 11,
                 /*allocSize*/ 270 );
         } );
 
     MallocAllocator mallocAlloc;
-    auto newTime = bench(
+    auto mallocTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
                 mallocAlloc,
-                /*allocations*/ 1 << 12,
+                /*allocations*/ 1 << 11,
                 /*allocSize*/ 270 );
         });
 
-    EXPECT_LE( buddyTime, newTime );
+    EXPECT_LE( buddyTime, mallocTime);
 }
 
 TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
@@ -96,7 +96,7 @@ TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
         } );
 
     MallocAllocator mallocAlloc;
-    auto newTime = bench(
+    auto mallocTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
@@ -105,7 +105,7 @@ TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
                 /*allocSize*/ 1024 );
         });
 
-    EXPECT_LE( buddyTime, newTime );
+    EXPECT_LE( buddyTime, mallocTime);
 }
 
 TEST( BuddyAllocatorTests, TestPerformanceFor128byteObjects )
@@ -121,7 +121,7 @@ TEST( BuddyAllocatorTests, TestPerformanceFor128byteObjects )
         } );
 
     MallocAllocator mallocAlloc;
-    auto newTime = bench(
+    auto mallocTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
@@ -130,5 +130,5 @@ TEST( BuddyAllocatorTests, TestPerformanceFor128byteObjects )
                 /*allocSize*/ 128 );
         });
 
-    EXPECT_LE( buddyTime, newTime );
+    EXPECT_LE( buddyTime, mallocTime);
 }

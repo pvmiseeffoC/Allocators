@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <list>
+#include <bitset>
 
 // size is in power of 2s, aka size = 10 is 2^10 bytes
 template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
@@ -14,6 +15,7 @@ private:
 
 private:
     std::vector<std::list<std::size_t>> _freeList;
+    std::bitset< (1 << (MAX_SIZE - MIN_SIZE + 1)) / 2 > _freeNodes;
 
     std::unique_ptr<uint8_t[]> _memoryPtr;
 
@@ -21,7 +23,7 @@ private:
 private:
     bool splitToLevel( std::size_t level ) noexcept;
     void freeNode(std::size_t nodeIdx, std::size_t level) noexcept;
-    void mergeFreeNodes(std::size_t parent, std::size_t level) noexcept;
+    void freeNode(std::size_t nodeIdx, std::size_t level, ScopedLock& l) noexcept;
 
     std::size_t fixSize(std::size_t allocSize) const noexcept;
 public:
