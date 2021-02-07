@@ -8,20 +8,12 @@ template <std::size_t MAX_SIZE, std::size_t MIN_SIZE, class THREADING_POLICY>
 class BuddyAllocator
 {
 private:
-    struct Node
-    {
-        std::size_t idx;
-        Node( std::size_t i ) : idx( i ) {}
-
-        friend bool operator<(Node const& a, Node const& b){return a.idx < b.idx;}
-        friend bool operator==(Node const& a, Node const& b){return a.idx == b.idx;}
-    };
 
     using LockType = typename THREADING_POLICY::LockType;
     using ScopedLock = typename THREADING_POLICY::ScopedLock;
 
 private:
-    std::vector<std::list<Node>> _freeList;
+    std::vector<std::list<std::size_t>> _freeList;
 
     std::unique_ptr<uint8_t[]> _memoryPtr;
 

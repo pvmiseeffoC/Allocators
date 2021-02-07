@@ -44,7 +44,7 @@ inline bool BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::splitToLevel( 
     {
         auto& freeNodes = _freeList[currentLvl];
         auto& nextLvlNodes = _freeList[currentLvl + 1];
-        auto nodeToSplitIdx = freeNodes.front().idx;
+        auto nodeToSplitIdx = freeNodes.front();
         freeNodes.pop_front();
         std::array<std::size_t, 2> children {
             buddylib::leftChildIdx( nodeToSplitIdx ), buddylib::rightChildIdx( nodeToSplitIdx ) };
@@ -63,7 +63,7 @@ inline void BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::freeNode(
     ScopedLock guard{ _lock };
     auto insertPos =
         std::lower_bound( std::begin( _freeList[level] ), std::end( _freeList[level] ), nodeIdx );
-    _freeList[level].insert( insertPos, Node( nodeIdx ) );
+    _freeList[level].insert( insertPos, nodeIdx );
 
     mergeFreeNodes( buddylib::parentIdx( nodeIdx ), level );
 }
@@ -125,10 +125,10 @@ inline void* BuddyAllocator<MAX_SIZE, MIN_SIZE, THREADING_POLICY>::allocate( std
     if ( _freeList.at( level ).empty() && !splitToLevel( level ) )
         return nullptr;
 
-    auto node = _freeList.at( level ).front();
+    auto nodeIdx = _freeList.at( level ).front();
     auto levelBeginIdx = buddylib::pow2( level );
     auto levelSize = buddylib::pow2( MAX_SIZE ) / levelBeginIdx;
-    auto offset = levelSize * ( node.idx - ( levelBeginIdx - 1 ) );
+    auto offset = levelSize * ( nodeIdx - ( levelBeginIdx - 1 ) );
     _freeList.at( level ).pop_front();
     return _memoryPtr.get() + offset;
 }
