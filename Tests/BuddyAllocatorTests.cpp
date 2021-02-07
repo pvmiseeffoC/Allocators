@@ -108,16 +108,16 @@ TEST( BuddyAllocatorTests, TestPerformanceFor1024byteObjects )
     EXPECT_LE( buddyTime, mallocTime);
 }
 
-TEST( BuddyAllocatorTests, TestPerformanceFor128byteObjects )
+TEST( BuddyAllocatorTests, TestPerformanceFor69byteObjects )
 {
-    BuddyAllocator<30, 10, SingleThreaded> buddy;
+    BuddyAllocator<32, 10, SingleThreaded> buddy;
     auto buddyTime = bench(
         /*iterations*/ 1000,
         [&]() {
             linearAllocDealloc(
                 buddy,
-                /*allocations*/ 1 << 20,
-                /*allocSize*/ 128 );
+                /*allocations*/ 1 << 22,
+                /*allocSize*/ 69 );
         } );
 
     MallocAllocator mallocAlloc;
@@ -126,8 +126,8 @@ TEST( BuddyAllocatorTests, TestPerformanceFor128byteObjects )
         [&]() {
             linearAllocDealloc(
                 mallocAlloc,
-                /*allocations*/ 1 << 20,
-                /*allocSize*/ 128 );
+                /*allocations*/ 1 << 22,
+                /*allocSize*/ 69 );
         });
 
     EXPECT_LE( buddyTime, mallocTime);

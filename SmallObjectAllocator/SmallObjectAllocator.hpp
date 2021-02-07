@@ -122,11 +122,13 @@ namespace allocators
 
         for ( SizeType i = 0; i < allocatorsSize; ++i )
         {
+            std::lock_guard<Lock> guard(_locks[i]);
             didFreeMemory |= _allocators[i].freeEmptyChunk();
         }
 
         for ( SizeType i = 0; i < allocatorsSize; ++i )
         {
+            std::lock_guard<Lock> guard(_locks[i]);
             didFreeMemory |= _allocators[i].tryToFreeUpSomeMemory();
         }
 
@@ -147,6 +149,7 @@ namespace allocators
         const auto allocatorsSize = getOffset( getMaxObjectSize(), getAlignmentSize() );
         for ( SizeType i = 0; i < allocatorsSize; ++i )
         {
+            std::lock_guard<Lock> guard(_locks[i]);
             if ( _allocators[i].isCorrupt() )
                 return true;
         }
